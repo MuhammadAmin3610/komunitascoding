@@ -1,68 +1,177 @@
 <?php
-include 'koneksi.php';
-$error = "";
+session_start();
+require_once "koneksi.php";
+
 $success = "";
+$error = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nama = htmlspecialchars($_POST["nama"]);
-    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $username = $_POST["username"] ?? '';
+    $email = $_POST["email"] ?? '';
+    $password = $_POST["password"] ?? '';
 
-    $result = $koneksi->prepare("SELECT * FROM pengguna WHERE email = ?");
-    $result->bind_param("s", $email);
-    $result->execute();
-    $check = $result->get_result();
+    // Cek apakah email sudah terdaftar
+    $stmt = $koneksi->prepare("SELECT * FROM pengguna WHERE email = ?");
+    $stmt->execute([$email]);
 
-    if ($check->num_rows > 0) {
-        $error = "❌ Email sudah digunakan!";
+    if ($stmt->rowCount() > 0) {
+        $error = "❌ Email sudah terdaftar!";
     } else {
-        $query = $koneksi->prepare("INSERT INTO pengguna (nama, email, password) VALUES (?, ?, ?)");
-        $query->bind_param("sss", $nama, $email, $password);
-        if ($query->execute()) {
-            $success = "✅ Registrasi berhasil! Silakan login.";
-        } else {
-            $error = "❌ Registrasi gagal!";
-        }
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $koneksi->prepare("INSERT INTO pengguna (nama, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $email, $hashed]);
+        header("Location: login.php?success=1");
+        exit;
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Register - Komunitas Coding</title>
-    <link rel="stylesheet" href="LRD.css">
+    <title>Register - BlockVerse</title>
+    <link rel="stylesheet" href="index.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        .form-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            color: #fff;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-box {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #fff;
+        }
+
+        .input-box input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            padding-left: 10px;
+            font-size: 16px;
+        }
+
+        .input-box label {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            pointer-events: none;
+            transition: .5s;
+            color: #fff;
+        }
+
+        .input-box input:focus ~ label,
+        .input-box input:valid ~ label {
+            top: -10px;
+            font-size: 14px;
+            color: #f72d7a;
+        }
+
+        .icon {
+            position: absolute;
+            right: 10px;
+            top: 13px;
+            color: #fff;
+            font-size: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            height: 45px;
+            background: #f72d7a;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #d61c63;
+        }
+
+        .form-container p {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .form-container a {
+            color: yellow;
+            text-decoration: none;
+        }
+
+        .form-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-<header class="navbar">
-    <div class="logo"><img src="assets/Kali Linux.png" alt="Logo"></div>
-    <nav class="menu">
-        <ul>
-            <li><a href="index.php">Beranda</a></li>
-            <li><a href="#">Tentang</a></li>
-            <li><a href="#">Layanan</a></li>
-            <li><a href="#">Kontak</a></li>
-            <li><a href="login.php" class="btn">Login</a></li>
-            <li><a href="regis.php" class="btn btn-outline">Register</a></li>
-        </ul>
+
+<video autoplay muted loop class="background-video">
+    <source src="assets/hero5.mp4" type="video/mp4" />
+</video>
+
+<header class="header">
+    <nav class="navbar">
+        <a href="index.php">Home</a>
+        <a href="portofolio.html">Portfolio</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="modul.php">Modul</a>
     </nav>
+    <form action="" class="search-bar">
+        <input type="text" placeholder="Search...">
+        <button><i class='bx bx-search'></i></button>
+    </form>
 </header>
 
-<div class="login-box">
-    <h2>📝 Registrasi</h2>
-    <?php if ($error): ?>
-        <div class="error"><?= htmlspecialchars($error) ?></div>
-    <?php elseif ($success): ?>
-        <div class="success"><?= htmlspecialchars($success) ?></div>
-    <?php endif; ?>
-    <form method="post">
-        <input type="text" name="nama" placeholder="> Nama Lengkap" required>
-        <input type="email" name="email" placeholder="> Email" required>
-        <input type="password" name="password" placeholder="> Password" required>
-        <input type="submit" value="> Daftar">
+<div class="form-container">
+    <h2>Register</h2>
+    <?php if ($error): ?><p style="color: red;"><?= htmlspecialchars($error) ?></p><?php endif; ?>
+    <form method="POST" action="">
+        <div class="input-box">
+            <span class="icon"><i class='bx bxs-user'></i></span>
+            <input type="text" name="username" required>
+            <label>Username</label>
+        </div>
+        <div class="input-box">
+            <span class="icon"><i class='bx bxs-envelope'></i></span>
+            <input type="email" name="email" required>
+            <label>Email</label>
+        </div>
+        <div class="input-box">
+            <span class="icon"><i class='bx bxs-lock-alt'></i></span>
+            <input type="password" name="password" required>
+            <label>Password</label>
+        </div>
+        <button type="submit" class="btn">Daftar</button>
+        <p>Sudah punya akun? <a href="login.php">Login</a></p>
     </form>
-    <div class="footer">Sudah punya akun? <a href="login.php">Login di sini</a></div>
 </div>
+
 </body>
 </html>
