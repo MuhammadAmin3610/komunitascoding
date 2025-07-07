@@ -1,25 +1,56 @@
 <?php
 session_start();
-require_once "config.php"; // file koneksi ke database
+require_once "koneksi.php";
+
+// Redirect jika sudah login
+if (isset($_SESSION["login"]) && $_SESSION["login"] === true) {
+    header("Location: dashboard.php");
+    exit;
+}
 
 $error = "";
+$success = "";
 
+// Cek apakah yang dikirim adalah form register atau login
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = $_POST["email"] ?? '';
-    $password = $_POST["password"] ?? '';
+    // Form login vs register dibedakan berdasarkan tombol yang diklik
+    if (isset($_POST["login"])) {
+        // ====== LOGIN LOGIC ======
+        $email = $_POST["email"] ?? '';
+        $password = $_POST["password"] ?? '';
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt = $koneksi->prepare("SELECT * FROM pengguna WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user && password_verify($password, $user["password"])) {
-        $_SESSION["login"] = true;
-        $_SESSION["username"] = $user["username"];
-        $_SESSION["role"] = $user["role"];
-        header("Location: dashboard.php");
-        exit;
-    } else {
-        $error = "Email atau password salah!";
+        if ($user && password_verify($password, $user["password"])) {
+            $_SESSION["login"] = true;
+            $_SESSION["username"] = $user["nama"];
+            $_SESSION["role"] = $user["role"];
+            header("Location: dashboard.php");
+            exit;
+        } else {
+            $error = "❌ Email atau password salah!";
+        }
+    } elseif (isset($_POST["register"])) {
+        // ====== REGISTER LOGIC ======
+        $username = $_POST["username"] ?? '';
+        $email = $_POST["email"] ?? '';
+        $password = $_POST["password"] ?? '';
+
+        // Cek apakah email sudah digunakan
+        $stmt = $koneksi->prepare("SELECT * FROM pengguna WHERE email = ?");
+        $stmt->execute([$email]);
+
+        if ($stmt->rowCount() > 0) {
+            $error = "❌ Email sudah terdaftar!";
+        } else {
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $koneksi->prepare("INSERT INTO pengguna (nama, email, password) VALUES (?, ?, ?)");
+            $stmt->execute([$username, $email, $hashed]);
+
+            $success = "✅ Berhasil mendaftar! Silakan login.";
+        }
     }
 }
 ?>
@@ -34,16 +65,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body>
 
 <video autoplay muted loop class="background-video">
-    <source src="hero1.mp4" type="video/mp4" />
+    <source src="assets/hero5.mp4" type="video/mp4" />
 </video>
 
 <header class="header">
     <nav class="navbar">
         <a href="index.php">Home</a>
-        <a href="portfolio.html">Portfolio</a>
+        <a href="portofolio.html">Portfolio</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
-        <a href="#">Help</a>
+        <a href="modul.php">Modul</a>
     </nav>
     <form action="" class="search-bar">
         <input type="text" placeholder="Search...">
@@ -56,8 +87,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="item">
         <h2 class="logo"><i class='bx bxl-xing'></i> Amin77</h2>
         <div class="text-item">
-            <h2>Welcome! <br><span>Crypto Academy Center</span></h2>
-            <p>Providing learning materials on various aspects of crypto, such as Bitcoin, Ethereum, and other altcoins.</p>
+            <h2 style="color: yellow;">Welcome! <br><span style="color: yellow;">BlockVerse x AM77</span></h2>
+            <p>BlockVerse adalah sebuah platform edukatif digital yang menghadirkan modul buku investasi dan teknologi masa depan dalam format online dan terstruktur, yang dirancang khusus untuk masyarakat Indonesia. Tujuan utama dari BlockVerse adalah mengubah mindset masyarakat agar lebih sadar, paham, dan siap menghadapi transformasi digital serta kemajuan teknologi di masa depan..</p>
             <div class="social-icon">
                 <a href="#"><i class='bx bxl-facebook'></i></a>
                 <a href="#"><i class='bx bxl-whatsapp'></i></a>
@@ -96,7 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <!-- Register form tidak aktif di sini, tapi bisa dikembangkan -->
         <div class="form-box register">
-            <form action="register.php" method="POST">
+            <form action="index.php" method="POST">
                 <h2>Sign Up</h2>
                 <div class="input-box">
                     <span class="icon"><i class='bx bxs-user'></i></span>

@@ -17,8 +17,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user['password'])) {
+                // ✅ Simpan session login + role
                 $_SESSION["login"] = true;
                 $_SESSION["username"] = $user['nama'];
+                $_SESSION["role"] = $user['role']; // 'admin' atau 'user'
+
                 header("Location: dashboard.php");
                 exit;
             } else {
@@ -42,12 +45,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="login.css">
 </head>
 <body>
-  <body>
-  <video autoplay muted loop class="bg-video">
+<video autoplay muted loop class="bg-video">
     <source src="hero1.mp4" type="video/mp4" />
     Browser Anda tidak mendukung video tag.
-  </video>
-
+</video>
 
 <header class="navbar">
     <div class="logo"><img src="assets/Kali Linux.png" alt="Logo"></div>

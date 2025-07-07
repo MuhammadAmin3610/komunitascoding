@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Upload Buku - Hash Techie Official</title>
+    <link rel="stylesheet" href="index.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        a {
+            color: rgb(223, 242, 51);
+        }
+        .upload-form {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            margin: 80px auto;
+            border-radius: 10px;
+            max-width: 500px;
+            color: white;
+        }
+        label, input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="file"] {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background-color: #d3f33b;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background video -->
+    <video autoplay muted loop class="background-video">
+        <source src="assets/perkotaan77.mp4" type="video/mp4">
+        Browser Anda tidak mendukung video.
+    </video>
+
+    <!-- Navbar -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="index.php">Home</a>
+            <a href="portofolio.html">Portfolio</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="upload.html" class="active">Upload</a>
+        </nav>
+        <form action="" class="search-bar">
+            <input type="text" placeholder="Search...">
+            <button><i class='bx bx-search'></i></button>
+        </form>
+    </header>
+
+    <!-- Upload Buku Section -->
+    <div class="upload-form">
+        <h2>Upload Buku PDF</h2>
+        <form action="upload_action.php" method="post" enctype="multipart/form-data">
+            <label for="judul">Judul Buku:</label>
+            <input type="text" id="judul" name="judul" required>
+
+            <label for="file">File PDF:</label>
+            <input type="file" id="file" name="file" accept="application/pdf" required>
+
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+</body>
+</html>
